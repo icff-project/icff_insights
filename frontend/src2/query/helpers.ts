@@ -131,7 +131,11 @@ export function getFormattedRows(result: QueryResult, operations: Operation[]) {
 				formattedRow[column.name] = getFormattedDate(row[column.name], granularity)
 			}
 
-			if (FIELDTYPES.TEXT.includes(column.type) && typeof row[column.name] === 'string' && row[column.name]) {
+			if (
+				FIELDTYPES.TEXT.includes(column.type) &&
+				typeof row[column.name] === 'string' &&
+				row[column.name]
+			) {
 				const htmlTagRegex = /<[^>]*>/g
 				if (htmlTagRegex.test(row[column.name])) {
 					htmlTagRegex.lastIndex = 0
@@ -146,13 +150,13 @@ export function getFormattedRows(result: QueryResult, operations: Operation[]) {
 	})
 	return formattedRows
 }
-
-export function getFormattedDate(date: string, granularity: GranularityType) {
+export function getFormattedDate(date: string, granularity: string) {
 	if (!date) return ''
+	const fy = useSettings()
 
 	if (granularity === 'fiscal_year') {
 		const d = dayjs(date)
-		const fiscalYearStart = useSettings().doc.fiscal_year_start || '04-01'
+		const fiscalYearStart = fy.doc.fiscal_year_start
 		const fiscalStartMonth = dayjs(fiscalYearStart).month()
 		const fiscalStartDay = dayjs(fiscalYearStart).date()
 
@@ -386,7 +390,10 @@ export const query_operation_types = {
 		icon: Braces,
 		color: 'gray',
 		class: 'text-gray-600 bg-gray-100',
-		init: (args: CustomOperationArgs): CustomOperation => ({ type: 'custom_operation', ...args }),
+		init: (args: CustomOperationArgs): CustomOperation => ({
+			type: 'custom_operation',
+			...args,
+		}),
 		getDescription: (op: CustomOperation) => {
 			return `${op.expression.expression}`
 		},
@@ -399,7 +406,7 @@ export const query_operation_types = {
 		class: 'text-gray-600 bg-gray-100',
 		init: (args: SQLArgs): SQL => ({ type: 'sql', ...args }),
 		getDescription: (op: SQL) => {
-			return __("SQL")
+			return __('SQL')
 		},
 	},
 	code: {
@@ -410,7 +417,7 @@ export const query_operation_types = {
 		class: 'text-gray-600 bg-gray-100',
 		init: (args: CodeArgs): Code => ({ type: 'code', ...args }),
 		getDescription: (op: Code) => {
-			return __("Code")
+			return __('Code')
 		},
 	},
 }
@@ -432,3 +439,59 @@ export const limit = query_operation_types.limit.init
 export const custom_operation = query_operation_types.custom_operation.init
 export const sql = query_operation_types.sql.init
 export const code = query_operation_types.code.init
+
+// ─── Inline column filter utilities ──────────────────────────────────────────
+
+// Operators checked longest-first so ">=" is not mistaken for ">"
+const NUMERIC_OPERATORS = ['>=', '<=', '!=', '>', '<', '='] as const
+export type NumericOperator = (typeof NUMERIC_OPERATORS)[number]
+
+export type ParsedFilter =
+	| { kind: 'numeric'; operator: NumericOperator; num: number }
+	| { kind: 'text'; text: string }
+
+/**
+ * Parse a raw filter string (e.g. ">= 100", "foo") into a structured form.
+ * Returns null when the string is empty or the numeric part cannot be parsed.
+ */
+export function parseFilterString(filterStr: string): ParsedFilter | null {
+	if (!filterStr) return null
+
+	const op = NUMERIC_OPERATORS.find((o) => filterStr.startsWith(o))
+	if (op) {
+		const rest = filterStr.slice(op.length).trim()
+		const num = Number(rest)
+		if (rest === '' || isNaN(num)) return null
+		return { kind: 'numeric', operator: op, num }
+	}
+
+	return { kind: 'text', text: filterStr }
+}
+
+/**
+ * Test whether a single cell value matches a parsed filter.
+ * Used for client-side (in-memory) filtering.
+ */
+export function matchesFilter(value: any, parsed: ParsedFilter): boolean {
+	if (parsed.kind === 'numeric') {
+		const num = Number(value)
+		switch (parsed.operator) {
+			case '>':
+				return num > parsed.num
+			case '<':
+				return num < parsed.num
+			case '>=':
+				return num >= parsed.num
+			case '<=':
+				return num <= parsed.num
+			case '=':
+				return num === parsed.num
+			case '!=':
+				return num !== parsed.num
+		}
+	}
+	// text: case-insensitive substring match
+	return String(value ?? '')
+		.toLowerCase()
+		.includes(parsed.text.toLowerCase())
+}

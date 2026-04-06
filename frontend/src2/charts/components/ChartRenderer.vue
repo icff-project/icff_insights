@@ -157,11 +157,13 @@ function handleGeneralChartClick(params: any) {
 	return column ? props.chart.dataQuery.getDrillDownQuery(column, row) : null
 }
 
-function onChartElementClick(params: any) {
+async function onChartElementClick(params: any) {
 	if (params.componentType !== 'series') return
 
 	const query =
-		chart_type.value === 'Map' ? handleMapChartClick(params) : handleGeneralChartClick(params)
+		chart_type.value === 'Map'
+			? await handleMapChartClick(params)
+			: await handleGeneralChartClick(params)
 
 	if (query) {
 		drillDownQuery.value = query
@@ -169,8 +171,8 @@ function onChartElementClick(params: any) {
 	}
 }
 
-function onNumberChartDrillDown(column: any, row: any) {
-	drillDownQuery.value = props.chart.dataQuery.getDrillDownQuery(column, row)
+async function onNumberChartDrillDown(column: any, row: any) {
+	drillDownQuery.value = await props.chart.dataQuery.getDrillDownQuery(column, row)
 	if (drillDownQuery.value) {
 		showDrillDown.value = true
 	}
@@ -195,7 +197,7 @@ const showExpandedChartDialog = ref(false)
 			:result="result"
 			@drill-down="onNumberChartDrillDown"
 		/>
-		<TableChart v-else-if="!loading && chart_type == 'Table'" :chart="props.chart" />
+		<TableChart v-else-if="chart_type == 'Table'" :chart="props.chart" />
 
 		<div v-else class="flex h-full flex-1 flex-col items-center justify-center rounded border">
 			<template v-if="loading">
