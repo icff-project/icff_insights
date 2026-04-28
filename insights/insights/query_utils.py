@@ -2,6 +2,38 @@
 # For license information, please see license.txt
 
 import frappe
+import sqlglot as sg
+
+
+def extract_sql_table_refs(raw_sql: str, dialect: sg.Dialect | None = None) -> list[frappe._dict]:
+    parsed = sg.parse_one(raw_sql, dialect=dialect)
+
+    cte_aliases = {
+        str(alias)
+        for cte_exp in parsed.find_all(sg.exp.CTE)
+        if (alias := getattr(cte_exp, "alias_or_name", None) or cte_exp.alias)
+    }
+
+    table_refs = []
+    seen_refs = set()
+    for table_exp in parsed.find_all(sg.exp.Table):
+        table_name = table_exp.name
+        if not table_name or table_name in cte_aliases:
+            continue
+
+        table_ref = frappe._dict(
+            name=table_name,
+            db=str(table_exp.db) if table_exp.db else None,
+            catalog=str(table_exp.catalog) if table_exp.catalog else None,
+        )
+        ref_key = (table_ref.name, table_ref.db, table_ref.catalog)
+        if ref_key in seen_refs:
+            continue
+
+        seen_refs.add(ref_key)
+        table_refs.append(table_ref)
+
+    return table_refs
 
 
 def extract_query_deps_from_operations(operations: list) -> list[str]:
@@ -15,10 +47,94 @@ def extract_query_deps_from_operations(operations: list) -> list[str]:
     ]
 
 
+def extract_table_deps_from_operations(operations: list) -> list[dict]:
+    """Extract all unique (data_source, table_name) pairs from a list of operations."""
+    seen: set[tuple] = set()
+    result = []
+    for op in operations:
+        tbl = op.get("table") or {}
+        if tbl.get("type") != "table":
+            continue
+        ds, tn = tbl.get("data_source"), tbl.get("table_name")
+        if not ds or not tn:
+            continue
+        key = (ds, tn)
+        if key in seen:
+            continue
+        seen.add(key)
+        result.append({"data_source": ds, "table_name": tn})
+    return result
+
+
+def extract_table_deps_from_sql_operations(operations: list) -> list[dict]:
+    """Extract unique (data_source, table_name) pairs from native SQL operations."""
+
+    from insights.insights.doctype.insights_data_source_v3.insights_data_source_v3 import (
+        db_type_to_sqlglot_dialect,
+    )
+
+    seen: set[tuple] = set()
+    result = []
+    for op in operations:
+        if op.get("type") != "sql":
+            continue
+        raw_sql = op.get("raw_sql") or ""
+        ds = op.get("data_source") or ""
+        if not raw_sql or not ds:
+            continue
+        db_type = frappe.db.get_value("Insights Data Source v3", ds, "database_type", cache=True)
+        dialect = db_type_to_sqlglot_dialect(db_type)
+        for ref in extract_sql_table_refs(raw_sql, dialect=dialect):
+            key = (ds, ref.name)
+            if key in seen:
+                continue
+            seen.add(key)
+            result.append({"data_source": ds, "table_name": ref.name})
+    return result
+
+
+def sync_query_references(query_name: str, operations) -> None:
+    """Rebuild edge rows for *query_name* in Insights Query Reference.
+
+    Deletes all existing outgoing edges for this query then inserts fresh
+    rows for every table and query reference found in operations.
+    """
+    from frappe.model.document import bulk_insert
+
+    ops = frappe.parse_json(operations) or []
+    frappe.db.delete("Insights Query Reference", {"query": query_name})
+
+    docs = []
+
+    all_table_deps = extract_table_deps_from_operations(ops) + extract_table_deps_from_sql_operations(ops)
+    for tbl in all_table_deps:
+        ref = frappe.new_doc("Insights Query Reference")
+        ref.name = frappe.generate_hash(length=10)
+        ref.query = query_name
+        ref.ref_type = "Table"
+        ref.data_source = tbl["data_source"]
+        ref.table_name = tbl["table_name"]
+        docs.append(ref)
+
+    for dep_query in extract_query_deps_from_operations(ops):
+        ref = frappe.new_doc("Insights Query Reference")
+        ref.name = frappe.generate_hash(length=10)
+        ref.query = query_name
+        ref.ref_type = "Query"
+        ref.ref_query = dep_query
+        docs.append(ref)
+
+    if docs:
+        bulk_insert("Insights Query Reference", docs)
+
+
 def get_direct_dependencies(query_name: str) -> list[str]:
-    """Return the list of query names this query directly depends on, from the DB."""
-    linked_queries = frappe.db.get_value("Insights Query v3", query_name, "linked_queries")
-    return frappe.parse_json(linked_queries) or []
+    """Return the query names this query directly depends on, from the edge table."""
+    return frappe.get_all(
+        "Insights Query Reference",
+        filters={"query": query_name, "ref_type": "Query"},
+        pluck="ref_query",
+    )
 
 
 def transitive_closure(start: str) -> set[str]:
