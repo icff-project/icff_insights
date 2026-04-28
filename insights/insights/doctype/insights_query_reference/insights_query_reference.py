@@ -1,11 +1,10 @@
-# Copyright (c) 2023, Frappe Technologies Pvt. Ltd. and contributors
+# Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
-# import frappe
 from frappe.model.document import Document
 
 
-class InsightsQueryExecutionLog(Document):
+class InsightsQueryReference(Document):
     # begin: auto-generated types
     # This code is auto-generated. Do not modify anything in this block.
 
@@ -15,10 +14,10 @@ class InsightsQueryExecutionLog(Document):
         from frappe.types import DF
 
         data_source: DF.Data | None
-        query: DF.Data | None
-        use_data_store: DF.Check
-        sql: DF.Code | None
-        time_taken: DF.Float
+        query: DF.Link
+        ref_query: DF.Link | None
+        ref_type: DF.Literal["Table", "Query"]
+        table_name: DF.Data | None
     # end: auto-generated types
 
     pass

@@ -273,6 +273,9 @@ class InsightsDataSourcev3(InsightsDataSourceDocument, Document):
         insights.db_connections[self.name] = db
         return db
 
+    def get_sqlglot_dialect(self) -> str | None:
+        return db_type_to_sqlglot_dialect(self.database_type)
+
     def _get_db_connection(self) -> BaseBackend:
         if self.is_site_db:
             return get_sitedb_connection()
@@ -328,7 +331,7 @@ class InsightsDataSourcev3(InsightsDataSourceDocument, Document):
         return db.list_tables(database=quoted_db_name)
 
     @frappe.whitelist()
-    def test_connection(self, raise_exception: bool = False):
+    def test_connection(self, raise_exception: bool | None = False):
         if self.type == "REST API":
             return self.test_api_connection(raise_exception)
 
@@ -339,7 +342,7 @@ class InsightsDataSourcev3(InsightsDataSourceDocument, Document):
             if raise_exception:
                 raise e
 
-    def test_api_connection(self, raise_exception=False):
+    def test_api_connection(self, raise_exception: bool | None = False):
         client = self.get_api_client()
         try:
             client.test_connection()
@@ -436,3 +439,18 @@ def db_connections():
         yield
     finally:
         after_request()
+
+
+def db_type_to_sqlglot_dialect(db_type: str) -> str | None:
+    if db_type == "REST API":
+        return "duckdb"
+
+    return {
+        "MariaDB": "mysql",
+        "PostgreSQL": "postgres",
+        "SQLite": "sqlite",
+        "DuckDB": "duckdb",
+        "BigQuery": "bigquery",
+        "MSSQL": "tsql",
+        "ClickHouse": "clickhouse",
+    }.get(db_type)
