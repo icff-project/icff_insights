@@ -8,7 +8,6 @@ from frappe.monitor import add_data_to_monitor
 
 from insights.api.shared import is_public
 from insights.decorators import insights_whitelist, validate_type
-from insights.insights.doctype.insights_data_source_v3.connectors.duckdb import get_duckdb_connection
 from insights.insights.doctype.insights_data_source_v3.ibis_utils import (
     get_columns_from_schema,
 )
@@ -71,7 +70,7 @@ def get_user_info():
         "default_version": get_user_default("insights_default_version", frappe.session.user),
         "has_desk_access": user.get("user_type") == "System User",
         "has_demo_data": has_demo_data,
-        "fiscal_year_start": frappe.get_single_value("Insights Settings", "fiscal_year_start")
+        "fiscal_year_start": frappe.db.get_single_value("Insights Settings", "fiscal_year_start")
         or "01-04-2020",
     }
 
@@ -122,22 +121,24 @@ def get_file_data(filename: str):
 
     create_uploads_if_not_exists()
     ds = frappe.get_doc("Insights Data Source v3", "uploads")
-    db = get_duckdb_connection(ds, read_only=False, allow_private_files=True)
+    with ds.write_connection() as db:
+        try:
+            table = _read_uploaded_table(db, file_path, ext)
+            columns = get_columns_from_schema(table.schema())
+            rows = table.head(50).execute().fillna("").to_dict(orient="records")
+            row_count = table.count().execute()
 
-    try:
-        table = _read_uploaded_table(db, file_path, ext)
-        columns = get_columns_from_schema(table.schema())
-        rows = table.head(50).execute().fillna("").to_dict(orient="records")
-        row_count = table.count().execute()
-
-        return {
-            "tablename": file_name,
-            "rows": rows,
-            "columns": columns,
-            "total_rows": int(row_count),
-        }
-    finally:
-        db.disconnect()
+            return {
+                "tablename": file_name,
+                "rows": rows,
+                "columns": columns,
+                "total_rows": int(row_count),
+            }
+        except frappe.ValidationError:
+            raise
+        except Exception as e:
+            frappe.log_error(e)
+            raise
 
 
 @insights_whitelist()
@@ -151,18 +152,15 @@ def import_csv_data(filename: str, tablename: str = ""):
 
     create_uploads_if_not_exists()
     ds = frappe.get_doc("Insights Data Source v3", "uploads")
-    db = get_duckdb_connection(ds, read_only=False, allow_private_files=True)
-
-    try:
-        table = _read_uploaded_table(db, file_path, ext)
-        db.create_table(table_name, table, overwrite=True)
-    except frappe.ValidationError:
-        raise
-    except Exception as e:
-        frappe.log_error(e)
-        frappe.throw("Failed to import uploaded file data into Insights uploads table. Please try again.")
-    finally:
-        db.disconnect()
+    with ds.write_connection() as db:
+        try:
+            table = _read_uploaded_table(db, file_path, ext)
+            db.create_table(table_name, table, overwrite=True)
+        except frappe.ValidationError:
+            raise
+        except Exception as e:
+            frappe.log_error(e)
+            frappe.throw("Failed to import uploaded file data into Insights uploads table. Please try again.")
 
     InsightsTablev3.bulk_create(ds.name, [table_name])
 

@@ -20,7 +20,10 @@ from ibis.common.exceptions import TableNotFound
 from ibis.expr.types import Expr, Table
 
 import insights
-from insights.insights.doctype.insights_data_source_v3.connectors.duckdb import get_local_duckdb_connection
+from insights.insights.doctype.insights_data_source_v3.connectors.duckdb import (
+    local_duckdb_write_connection,
+    open_local_duckdb,
+)
 from insights.utils import InsightsDataSourcev3, InsightsTablev3
 
 WAREHOUSE_DB_NAME = "insights"
@@ -40,7 +43,7 @@ class Warehouse:
     def get_connection(self, database: str | None = None, read_only: bool = True) -> DuckDBBackend:
         path = self.get_db_path()
 
-        db = get_local_duckdb_connection(
+        db = open_local_duckdb(
             path,
             read_only=read_only,
             allowed_dir=str(Path(tempfile.gettempdir())) if not read_only else None,
@@ -68,21 +71,15 @@ class Warehouse:
     def get_write_connection(
         self, database: str | None = None, timeout: int = 30
     ) -> Generator[DuckDBBackend, None, None]:
-        from frappe.utils.synchronization import filelock
+        path = self.get_db_path()
+        allowed_dir = str(Path(tempfile.gettempdir()))
 
-        with filelock("insights_warehouse_write", timeout=timeout):
-            # DuckDB disallows a second connection to the same file with a different
-            # config (read_only vs read-write). Close the cached read-only connection
-            # before opening the write connection; it will be re-opened on next access.
-            with suppress(Exception):
-                cached = insights.db_connections.pop(WAREHOUSE_DB_NAME, None)
-                cached.disconnect()
-
-            db = self.get_connection(database, read_only=False)
-            try:
-                yield db
-            finally:
-                db.disconnect()
+        with local_duckdb_write_connection(
+            path, cache_key=WAREHOUSE_DB_NAME, allowed_dir=allowed_dir, timeout=timeout
+        ) as db:
+            if database:
+                db.raw_sql(f"USE '{database}'")
+            yield db
 
     def get_table(self, data_source: str, table_name: str) -> "WarehouseTable":
         return WarehouseTable(data_source, table_name)

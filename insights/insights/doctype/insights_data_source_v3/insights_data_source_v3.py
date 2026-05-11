@@ -273,6 +273,27 @@ class InsightsDataSourcev3(InsightsDataSourceDocument, Document):
         insights.db_connections[self.name] = db
         return db
 
+    @contextmanager
+    def write_connection(self):
+        """Safely yield a writable DuckDB connection for this data source.
+
+        Evicts the cached read-only connection, opens a write connection with
+        access to private files (needed for CSV/Excel/JSON imports), then
+        disconnects on exit so the read connection is lazily re-opened cleanly.
+
+        Only supported for local DuckDB data sources.
+        """
+        if self.database_type != "DuckDB" or (self.database_name or "").startswith("http"):
+            raise NotImplementedError(
+                f"write_connection() is only supported for local DuckDB data sources, not '{self.database_type}'"
+            )
+
+        from .connectors.duckdb import get_duckdb_path, local_duckdb_write_connection
+
+        path = get_duckdb_path(self)
+        with local_duckdb_write_connection(path, cache_key=self.name, allow_private_files=True) as db:
+            yield db
+
     def get_sqlglot_dialect(self) -> str | None:
         return db_type_to_sqlglot_dialect(self.database_type)
 
