@@ -3,6 +3,7 @@ import { __ } from '../translation'
 import { call } from 'frappe-ui'
 import { reactive, ref } from 'vue'
 import { showErrorToast } from '../helpers'
+import { confirmDialog } from '../helpers/confirm_dialog'
 import { createToast } from '../helpers/toasts'
 
 export type TeamMember = {
@@ -65,6 +66,35 @@ async function createTeam(team_name: string) {
 		})
 }
 
+const deletingTeam = ref(false)
+function deleteTeam(team_name: string) {
+	return new Promise<void>((resolve, reject) => {
+		confirmDialog({
+			title: __('Delete Team'),
+			message: __('Are you sure you want to delete this team?'),
+			onSuccess: () => {
+				deletingTeam.value = true
+				call('insights.api.user.delete_team', { team_name })
+					.then(() => {
+						getTeams()
+						createToast({
+							message: __('Team deleted'),
+							variant: 'success',
+						})
+						resolve()
+					})
+					.catch((e: Error) => {
+						showErrorToast(e)
+						reject(e)
+					})
+					.finally(() => {
+						deletingTeam.value = false
+					})
+			},
+		})
+	})
+}
+
 const updatingTeam = ref(false)
 async function updateTeam(team: Team) {
 	updatingTeam.value = true
@@ -99,6 +129,9 @@ export default function useTeamStore() {
 
 		updatingTeam,
 		updateTeam,
+
+		deletingTeam,
+		deleteTeam,
 	})
 }
 

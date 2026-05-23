@@ -185,6 +185,12 @@ def update_team(team: dict):
     doc.save()
 
 
+@insights_whitelist(role="Insights Admin")
+@validate_type
+def delete_team(team_name: str):
+    frappe.delete_doc("Insights Team", team_name)
+
+
 @insights_whitelist()
 def add_insights_user(user: str):
     raise NotImplementedError

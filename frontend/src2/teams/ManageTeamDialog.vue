@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { __ } from '../translation'
 import Switch from '../components/Switch.vue'
 import UserSelector from '../components/UserSelector.vue'
 import { copy } from '../helpers'
+import session from '../session'
+import { __ } from '../translation'
 import useUserStore from '../users/users'
 import TeamResourceSelector from './TeamResourceSelector.vue'
 import useTeamStore, { Team } from './teams'
@@ -74,7 +75,17 @@ const activeTab = ref('Members')
 						})
 					},
 				},
-			],
+				session.user.is_admin && currentTeam.name !== 'Admin'
+					? {
+							label: __('Delete'),
+							variant: 'subtle',
+							theme: 'red',
+							loading: teamStore.deletingTeam,
+							onClick: () =>
+								teamStore.deleteTeam(currentTeam.name).then(() => (show = false)),
+					  }
+					: null,
+			].filter(Boolean),
 		}"
 	>
 		<template #body-content>
