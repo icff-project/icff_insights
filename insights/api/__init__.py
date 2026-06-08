@@ -28,14 +28,9 @@ def get_app_version():
 
 @insights_whitelist()
 def get_user_info():
-    is_admin = frappe.db.exists(
-        "Has Role",
-        {
-            "parenttype": "User",
-            "parent": frappe.session.user,
-            "role": ["in", ("Insights Admin")],
-        },
-    )
+    from insights.insights.doctype.insights_team.insights_team import is_admin
+
+    _is_admin = is_admin(frappe.session.user)
     is_user = frappe.db.exists(
         "Has Role",
         {
@@ -51,8 +46,6 @@ def get_user_info():
 
     locale = user.get("language") or frappe.db.get_single_value("System Settings", "language") or "en"
 
-    _is_admin = is_admin or frappe.session.user == "Administrator"
-
     has_demo_data = False
     if _is_admin:
         from insights.setup.setup_wizard import check_demo_data_exists
@@ -65,6 +58,7 @@ def get_user_info():
         "last_name": user.get("last_name"),
         "is_admin": _is_admin,
         "is_user": is_user or frappe.session.user == "Administrator",
+        "can_download": _is_admin or bool(frappe.db.get_single_value("Insights Settings", "allow_download")),
         # TODO: move to `get_session_info` since not user specific
         "country": frappe.db.get_single_value("System Settings", "country"),
         "locale": locale,

@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: hello@frappe.io\n"
-"POT-Creation-Date: 2026-04-26 09:47+0000\n"
-"PO-Revision-Date: 2026-05-05 12:04\n"
+"POT-Creation-Date: 2026-05-24 10:09+0000\n"
+"PO-Revision-Date: 2026-06-03 16:54\n"
 "Last-Translator: hello@frappe.io\n"
 "Language-Team: Hungarian\n"
 "MIME-Version: 1.0\n"
@@ -213,6 +213,11 @@ msgstr "Bárki, aki rendelkezik a linkkel, megtekintheti"
 msgid "Append"
 msgstr "Hozzáad"
 
+#. Option for the 'Sync Strategy' (Select) field in DocType 'Insights Table v3'
+#: insights/insights/doctype/insights_table_v3/insights_table_v3.json
+msgid "Append Only"
+msgstr ""
+
 #: frontend/src2/query/components/UnionSelectorDialog.vue:116
 msgid "Append Rows"
 msgstr "Sorok Hozzáadása"
@@ -264,14 +269,14 @@ msgstr "Lekérdezés Automatikus Végrehajtása"
 msgid "Automatically arrange cards vertically to fill empty spaces"
 msgstr "A kártyák automatikus függőleges elrendezése az üres helyek kitöltéséhez"
 
-#: frontend/src2/charts/components/MeasurePicker.vue:128
+#: frontend/src2/charts/components/MeasurePicker.vue:138
 msgid "Average of..."
 msgstr "Átlagos..."
 
 #. Label of the api_base_url (Data) field in DocType 'Insights Data Source v3'
 #: insights/insights/doctype/insights_data_source_v3/insights_data_source_v3.json
 msgid "Base URL"
-msgstr "Alapértelmezett URL"
+msgstr "Bázis URL"
 
 #. Option for the 'Authentication Type' (Select) field in DocType 'Insights
 #. Data Source v3'
@@ -405,7 +410,7 @@ msgstr "Diagram"
 #: insights/insights/doctype/insights_chart/insights_chart.json
 #: insights/insights/doctype/insights_chart_v3/insights_chart_v3.json
 msgid "Chart Type"
-msgstr "Diagram Típus"
+msgstr "Diagram típus"
 
 #: frontend/src2/workbook/WorkbookSidebar.vue:57
 msgid "Charts"
@@ -431,7 +436,13 @@ msgstr "Óránként egyszer ellenőrizze"
 msgid "Choose Columns"
 msgstr "Oszlopok kijelölése"
 
-#: insights/insights/doctype/insights_data_source_v3/ibis_utils.py:98
+#. Description of the 'Sync Strategy' (Select) field in DocType 'Insights Table
+#. v3'
+#: insights/insights/doctype/insights_table_v3/insights_table_v3.json
+msgid "Choose how incremental sync writes rows: <b>Append Only</b> adds new rows, while <b>Update or Insert</b> updates matching keys and inserts new rows."
+msgstr ""
+
+#: insights/insights/doctype/insights_data_source_v3/ibis_utils.py:96
 msgid "Circular query reference detected while building \"{0}\""
 msgstr "Körkörös lekérdezési hivatkozás észlelve a(z) \"{0} \" készítése során"
 
@@ -478,12 +489,6 @@ msgstr "Színskála"
 #: insights/insights/doctype/insights_table_column/insights_table_column.json
 msgid "Column"
 msgstr "Oszlop"
-
-#. Description of the 'Cursor Column' (Data) field in DocType 'Insights Table
-#. v3'
-#: insights/insights/doctype/insights_table_v3/insights_table_v3.json
-msgid "Column used to track sync progress. Use <b>modified</b> if rows can be updated (syncs new and changed rows). Use <b>creation</b> if rows are append-only (syncs only new rows, faster)."
-msgstr "A szinkronizálás előrehaladásának nyomon követésére használt oszlop. Használja a <b>módosított</b> oszlopot, ha a sorok frissíthetők (az új és a módosított sorok szinkronizálódnak). Használja a <b>létrehozás</b> oszlopot, ha a sorok csak hozzáfűzésre alkalmasak (csak az új sorok szinkronizálódnak, gyorsabb)."
 
 #. Label of the columns (Table) field in DocType 'Insights Query'
 #. Label of the columns (Table) field in DocType 'Insights Table'
@@ -608,7 +613,7 @@ msgstr "JSON másolása"
 msgid "Copy Query"
 msgstr "Lekérdezés másolása"
 
-#: frontend/src2/charts/components/MeasurePicker.vue:126
+#: frontend/src2/charts/components/MeasurePicker.vue:136
 msgid "Count of..."
 msgstr "darab..."
 
@@ -632,7 +637,7 @@ msgstr "Csapat létrehozása"
 
 #: frontend/src2/dashboard/DashboardList.vue:96
 msgid "Create a dashboard in your workbook to view it here."
-msgstr "Hozzon létre egy vezérlőőpultot a munkafüzetében, hogy itt megtekinthesse."
+msgstr "Hozzon létre egy vezérlőpultot a munkafüzetében, hogy itt megtekinthesse."
 
 #: frontend/src2/data_source/DataSourceList.vue:119
 msgid "Created"
@@ -656,7 +661,7 @@ msgstr "Cron"
 #. Label of the cron_format (Data) field in DocType 'Insights Alert'
 #: insights/insights/doctype/insights_alert/insights_alert.json
 msgid "Cron Format"
-msgstr "Cron Formátum"
+msgstr "Cron formátum"
 
 #. Description of the 'Schedule (Cron)' (Data) field in DocType 'Insights Table
 #. Import Job'
@@ -712,7 +717,7 @@ msgstr "Irányítópult hozzáférés frissítve"
 #: frontend/src2/dashboard/Dashboard.vue:46
 #: frontend/src2/workbook/WorkbookSidebar.vue:75
 msgid "Dashboards"
-msgstr "Műszerfalak"
+msgstr "Irányítópultok"
 
 #. Label of the data_backup (JSON) field in DocType 'Insights Workbook'
 #: insights/insights/doctype/insights_workbook/insights_workbook.json
@@ -816,9 +821,10 @@ msgstr "Tizedes"
 
 #: frontend/src2/dashboard/DashboardFilterEditor.vue:234
 msgid "Default Value"
-msgstr "Alapértelmezett Érték"
+msgstr "Alapértelmezett érték"
 
 #: frontend/src2/dashboard/DashboardItemActions.vue:19
+#: frontend/src2/teams/ManageTeamDialog.vue:80
 #: frontend/src2/workbook/WorkbookNavbarActions.vue:72
 msgid "Delete"
 msgstr "Törlés"
@@ -848,7 +854,7 @@ msgstr "Dokumentáció"
 
 #: frontend/src2/charts/components/ChartShareDialog.vue:38
 #: frontend/src2/dashboard/DashboardShareDialog.vue:86
-#: frontend/src2/teams/ManageTeamDialog.vue:66
+#: frontend/src2/teams/ManageTeamDialog.vue:67
 msgid "Done"
 msgstr "Kész"
 
@@ -1040,7 +1046,7 @@ msgstr "Exportálás"
 
 #: frontend/src2/components/ExportDialog.vue:35
 msgid "Export Data"
-msgstr "Adat Exportálása"
+msgstr "Adat exportálása"
 
 #: frontend/src2/components/ExportDialog.vue:44
 msgid "Export Format"
@@ -1109,7 +1115,7 @@ msgstr "{0}s alatt lekérve"
 
 #: frontend/src2/data_source/ConnectDuckDBDialog.vue:28
 msgid "File URL"
-msgstr "Fájl URL"
+msgstr "Fájl URL-címe"
 
 #: frontend/src2/components/ExportDialog.vue:58
 msgid "Filename"
@@ -1141,7 +1147,7 @@ msgstr "Szűrők"
 msgid "Fiscal Year Start"
 msgstr "Költségvetési év kezdete"
 
-#: insights/api/workbooks.py:241
+#: insights/api/workbooks.py:260
 msgid "Folder and item must belong to the same workbook"
 msgstr "A mappának és az elemnek ugyanahhoz a munkafüzethez kell tartoznia"
 
@@ -1311,12 +1317,6 @@ msgstr "Inaktív"
 #: insights/insights/doctype/insights_table_v3/insights_table_v3.json
 msgid "Incremental"
 msgstr "Inkrementális"
-
-#. Label of the sync_section (Section Break) field in DocType 'Insights Table
-#. v3'
-#: insights/insights/doctype/insights_table_v3/insights_table_v3.json
-msgid "Incremental Sync"
-msgstr "Inkrementális szinkronizálás"
 
 #: frontend/src2/charts/components/MapChartConfigForm.vue:55
 msgid "India"
@@ -1710,7 +1710,7 @@ msgstr "Felirat"
 
 #: frontend/src2/users/UserList.vue:65
 msgid "Last Active"
-msgstr "Utoljára Aktív"
+msgstr "Utoljára aktív"
 
 #. Label of the last_execution (Datetime) field in DocType 'Insights Query'
 #: insights/insights/doctype/insights_query/insights_query.json
@@ -1722,7 +1722,7 @@ msgstr "Utoljára végrehajtva"
 #: frontend/src2/query/components/QueryAlertsDialog.vue:56
 #: insights/insights/doctype/insights_alert/insights_alert.json
 msgid "Last Execution"
-msgstr "Utolsó Végrehajtás"
+msgstr "Utolsó végrehajtás"
 
 #: insights/insights/doctype/insights_table_v3/insights_table_v3.js:66
 msgid "Last Import Duration"
@@ -1761,7 +1761,7 @@ msgstr "Utolsó szinkronizálás"
 #: insights/insights/doctype/insights_table_v3/insights_table_v3.js:60
 #: insights/insights/doctype/insights_table_v3/insights_table_v3.json
 msgid "Last Synced On"
-msgstr "Utoljára Szinkronizálva"
+msgstr "Utolsó szinkronizálás dátuma"
 
 #. Description of the 'Last Sync Bookmark' (Data) field in DocType 'Insights
 #. Table v3'
@@ -1843,9 +1843,9 @@ msgstr "Hosszú Egész"
 #. Option for the 'Type' (Select) field in DocType 'Insights Table Column'
 #: insights/insights/doctype/insights_table_column/insights_table_column.json
 msgid "Long Text"
-msgstr "Hosszú Szöveg"
+msgstr "Hosszú szöveg"
 
-#: frontend/src2/teams/ManageTeamDialog.vue:63
+#: frontend/src2/teams/ManageTeamDialog.vue:64
 msgid "Manage Team"
 msgstr "Csapat kezelése"
 
@@ -1886,7 +1886,7 @@ msgstr "Max. memóriahasználat"
 msgid "Max Records To Sync"
 msgstr "Max. szinkronizálandó rekordok"
 
-#: frontend/src2/charts/components/MeasurePicker.vue:130
+#: frontend/src2/charts/components/MeasurePicker.vue:140
 msgid "Maximum of..."
 msgstr "Maximum..."
 
@@ -1905,7 +1905,7 @@ msgstr "Memória korlát (MB)"
 msgid "Message"
 msgstr "Üzenet"
 
-#: frontend/src2/charts/components/MeasurePicker.vue:129
+#: frontend/src2/charts/components/MeasurePicker.vue:139
 msgid "Minimum of..."
 msgstr "Minimum..."
 
@@ -1948,7 +1948,7 @@ msgstr "Új figyelmeztetés"
 
 #: frontend/src2/workbook/WorkbookTabSwitcher.vue:63
 msgid "New Chart"
-msgstr "Új Diagram"
+msgstr "Új diagram"
 
 #: frontend/src2/workbook/WorkbookTabSwitcher.vue:64
 msgid "New Dashboard"
@@ -1972,7 +1972,7 @@ msgstr "Új munkafüzet"
 #. Label of the next_execution (Datetime) field in DocType 'Insights Alert'
 #: insights/insights/doctype/insights_alert/insights_alert.json
 msgid "Next Execution"
-msgstr "Következő Végrehajtás"
+msgstr "Következő végrehajtás"
 
 #: frontend/src2/query/components/UnionSelectorDialog.vue:144
 msgid "No"
@@ -2098,7 +2098,7 @@ msgstr ""
 
 #: frontend/src2/query/components/FormatRule.vue:416
 msgid "Operator"
-msgstr ""
+msgstr "Operátor"
 
 #. Label of the options (JSON) field in DocType 'Insights Chart'
 #. Label of the options (JSON) field in DocType 'Insights Dashboard Item'
@@ -2139,7 +2139,7 @@ msgstr "Parquet fájl"
 #. Option for the 'Status' (Select) field in DocType 'Insights Table Import'
 #: insights/insights/doctype/insights_table_import/insights_table_import.json
 msgid "Partial Success"
-msgstr "Részleges Siker"
+msgstr "Részleges siker"
 
 #. Label of the password (Password) field in DocType 'Insights Data Source'
 #. Label of the password (Password) field in DocType 'Insights Data Source v3'
@@ -2227,6 +2227,12 @@ msgstr "Előnézeti Kép"
 #: insights/insights/doctype/insights_table_link/insights_table_link.json
 msgid "Primary Key"
 msgstr "Elsődleges kulcs"
+
+#. Label of the sync_primary_key_column (Data) field in DocType 'Insights Table
+#. v3'
+#: insights/insights/doctype/insights_table_v3/insights_table_v3.json
+msgid "Primary Key Column"
+msgstr ""
 
 #: frontend/src2/settings/Settings.vue:13
 msgid "Profile"
@@ -2718,6 +2724,12 @@ msgstr "Konkrét személyek láthatják"
 msgid "Spreading column values into separate columns"
 msgstr "Az oszlopértékek szétosztása külön oszlopokba"
 
+#. Description of the 'Primary Key Column' (Data) field in DocType 'Insights
+#. Table v3'
+#: insights/insights/doctype/insights_table_v3/insights_table_v3.json
+msgid "Stable key used to identify the latest version of each logical row during incremental upserts."
+msgstr ""
+
 #. Description of the 'Sync From' (Datetime) field in DocType 'Insights Table
 #. v3'
 #: insights/insights/doctype/insights_table_v3/insights_table_v3.json
@@ -2788,7 +2800,7 @@ msgstr "Karakterlánc"
 msgid "Success"
 msgstr "Siker"
 
-#: frontend/src2/charts/components/MeasurePicker.vue:127
+#: frontend/src2/charts/components/MeasurePicker.vue:137
 msgid "Sum of..."
 msgstr "Összeg..."
 
@@ -2820,6 +2832,11 @@ msgstr "Szinkronizálás innen"
 #: insights/insights/doctype/insights_table_v3/insights_table_v3.json
 msgid "Sync Mode"
 msgstr "Szinkronizálás módja"
+
+#. Label of the sync_strategy (Select) field in DocType 'Insights Table v3'
+#: insights/insights/doctype/insights_table_v3/insights_table_v3.json
+msgid "Sync Strategy"
+msgstr ""
 
 #: frontend/src2/query/components/source_selector/DataSourceTableList.vue:59
 msgid "Sync tables from your data source to get started"
@@ -2936,6 +2953,12 @@ msgstr "Telegram API Token"
 #: insights/insights/doctype/insights_alert/insights_alert.json
 msgid "Telegram Chat ID"
 msgstr "Telegram Chat ID"
+
+#. Description of the 'Cursor Column' (Data) field in DocType 'Insights Table
+#. v3'
+#: insights/insights/doctype/insights_table_v3/insights_table_v3.json
+msgid "Temporal column used to detect rows that changed since the last sync. Use <b>modified</b> for mutable tables and <b>creation</b> for append-only tables."
+msgstr ""
 
 #. Option for the 'Type' (Select) field in DocType 'Insights Table Column'
 #: insights/insights/doctype/insights_table_column/insights_table_column.json
@@ -3097,7 +3120,7 @@ msgstr "Típus"
 msgid "Unexpected validation error"
 msgstr "Váratlan érvényesítési hiba"
 
-#: frontend/src2/charts/components/MeasurePicker.vue:131
+#: frontend/src2/charts/components/MeasurePicker.vue:141
 msgid "Unique Count of..."
 msgstr "Egyedi darabszám..."
 
@@ -3117,6 +3140,11 @@ msgstr "Táblázathivatkozások frissítése"
 #: frontend/src2/data_source/DataSourceTableList.vue:82
 msgid "Update Tables"
 msgstr "Táblázatok frissítése"
+
+#. Option for the 'Sync Strategy' (Select) field in DocType 'Insights Table v3'
+#: insights/insights/doctype/insights_table_v3/insights_table_v3.json
+msgid "Update or Insert"
+msgstr ""
 
 #: frontend/src2/data_source/DataSourceList.vue:76
 msgid "Upload CSV or Excel"
@@ -3306,13 +3334,13 @@ msgstr "Az üzenet formázásához használhat markdownt. A félkövér szövegh
 msgid "You do not have permission to access this resource"
 msgstr "Nincs jogosultsága az erőforrás eléréséhez"
 
-#: insights/api/workbooks.py:165 insights/api/workbooks.py:186
-#: insights/api/workbooks.py:198 insights/api/workbooks.py:225
-#: insights/api/workbooks.py:236 insights/api/workbooks.py:250
+#: insights/api/workbooks.py:183 insights/api/workbooks.py:202
+#: insights/api/workbooks.py:215 insights/api/workbooks.py:243
+#: insights/api/workbooks.py:255 insights/api/workbooks.py:269
 msgid "You do not have permission to modify this workbook"
 msgstr "Nincs jogosultsága a munkafüzet módosítására"
 
-#: insights/api/workbooks.py:79 insights/api/workbooks.py:132
+#: insights/api/workbooks.py:79 insights/api/workbooks.py:135
 msgid "You do not have permission to share this workbook"
 msgstr "Nincs jogosultsága a munkafüzet megosztására"
 

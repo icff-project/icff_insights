@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: hello@frappe.io\n"
-"POT-Creation-Date: 2026-04-26 09:47+0000\n"
-"PO-Revision-Date: 2026-04-27 11:03\n"
+"POT-Creation-Date: 2026-05-24 10:09+0000\n"
+"PO-Revision-Date: 2026-05-30 15:52\n"
 "Last-Translator: hello@frappe.io\n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -49,7 +49,7 @@ msgstr ""
 #. Label of the api_token (Password) field in DocType 'Insights Data Source v3'
 #: insights/insights/doctype/insights_data_source_v3/insights_data_source_v3.json
 msgid "API Token"
-msgstr ""
+msgstr "Jeton API"
 
 #. Label of the api_username (Data) field in DocType 'Insights Data Source v3'
 #: insights/insights/doctype/insights_data_source_v3/insights_data_source_v3.json
@@ -63,13 +63,13 @@ msgstr ""
 #. Option for the 'Status' (Select) field in DocType 'Insights User Invitation'
 #: insights/insights/doctype/insights_user_invitation/insights_user_invitation.json
 msgid "Accepted"
-msgstr ""
+msgstr "Accepté"
 
 #. Label of the accepted_at (Datetime) field in DocType 'Insights User
 #. Invitation'
 #: insights/insights/doctype/insights_user_invitation/insights_user_invitation.json
 msgid "Accepted At"
-msgstr ""
+msgstr "Accepté le"
 
 #: frontend/src2/workbook/WorkbookList.vue:47
 msgid "Access"
@@ -104,7 +104,7 @@ msgstr ""
 
 #: frontend/src2/query/components/FiltersSelector.vue:137
 msgid "Add Filter"
-msgstr ""
+msgstr "Ajouter un filtre"
 
 #: frontend/src2/query/components/AddOperationPopover.vue:62
 msgid "Add New Column"
@@ -213,6 +213,11 @@ msgstr ""
 msgid "Append"
 msgstr ""
 
+#. Option for the 'Sync Strategy' (Select) field in DocType 'Insights Table v3'
+#: insights/insights/doctype/insights_table_v3/insights_table_v3.json
+msgid "Append Only"
+msgstr ""
+
 #: frontend/src2/query/components/UnionSelectorDialog.vue:116
 msgid "Append Rows"
 msgstr ""
@@ -264,7 +269,7 @@ msgstr ""
 msgid "Automatically arrange cards vertically to fill empty spaces"
 msgstr ""
 
-#: frontend/src2/charts/components/MeasurePicker.vue:128
+#: frontend/src2/charts/components/MeasurePicker.vue:138
 msgid "Average of..."
 msgstr "Moyenne de..."
 
@@ -431,7 +436,13 @@ msgstr ""
 msgid "Choose Columns"
 msgstr ""
 
-#: insights/insights/doctype/insights_data_source_v3/ibis_utils.py:98
+#. Description of the 'Sync Strategy' (Select) field in DocType 'Insights Table
+#. v3'
+#: insights/insights/doctype/insights_table_v3/insights_table_v3.json
+msgid "Choose how incremental sync writes rows: <b>Append Only</b> adds new rows, while <b>Update or Insert</b> updates matching keys and inserts new rows."
+msgstr ""
+
+#: insights/insights/doctype/insights_data_source_v3/ibis_utils.py:96
 msgid "Circular query reference detected while building \"{0}\""
 msgstr ""
 
@@ -478,12 +489,6 @@ msgstr ""
 #: insights/insights/doctype/insights_table_column/insights_table_column.json
 msgid "Column"
 msgstr "Colonne"
-
-#. Description of the 'Cursor Column' (Data) field in DocType 'Insights Table
-#. v3'
-#: insights/insights/doctype/insights_table_v3/insights_table_v3.json
-msgid "Column used to track sync progress. Use <b>modified</b> if rows can be updated (syncs new and changed rows). Use <b>creation</b> if rows are append-only (syncs only new rows, faster)."
-msgstr ""
 
 #. Label of the columns (Table) field in DocType 'Insights Query'
 #. Label of the columns (Table) field in DocType 'Insights Table'
@@ -608,7 +613,7 @@ msgstr ""
 msgid "Copy Query"
 msgstr ""
 
-#: frontend/src2/charts/components/MeasurePicker.vue:126
+#: frontend/src2/charts/components/MeasurePicker.vue:136
 msgid "Count of..."
 msgstr ""
 
@@ -798,7 +803,7 @@ msgstr ""
 #. Option for the 'Type' (Select) field in DocType 'Insights Table Column'
 #: insights/insights/doctype/insights_table_column/insights_table_column.json
 msgid "Date"
-msgstr ""
+msgstr "Date"
 
 #: frontend/src2/query/components/FormatRule.vue:234
 msgid "Date Rules"
@@ -819,6 +824,7 @@ msgid "Default Value"
 msgstr "Valeur par Défaut"
 
 #: frontend/src2/dashboard/DashboardItemActions.vue:19
+#: frontend/src2/teams/ManageTeamDialog.vue:80
 #: frontend/src2/workbook/WorkbookNavbarActions.vue:72
 msgid "Delete"
 msgstr "Supprimer"
@@ -844,11 +850,11 @@ msgstr "Désactivé"
 
 #: frontend/src2/components/UserDropdown.vue:116
 msgid "Documentation"
-msgstr ""
+msgstr "Documentation"
 
 #: frontend/src2/charts/components/ChartShareDialog.vue:38
 #: frontend/src2/dashboard/DashboardShareDialog.vue:86
-#: frontend/src2/teams/ManageTeamDialog.vue:66
+#: frontend/src2/teams/ManageTeamDialog.vue:67
 msgid "Done"
 msgstr "Terminé"
 
@@ -1141,7 +1147,7 @@ msgstr "Filtres"
 msgid "Fiscal Year Start"
 msgstr ""
 
-#: insights/api/workbooks.py:241
+#: insights/api/workbooks.py:260
 msgid "Folder and item must belong to the same workbook"
 msgstr ""
 
@@ -1310,12 +1316,6 @@ msgstr "Inactif"
 #. Option for the 'Sync Mode' (Select) field in DocType 'Insights Table v3'
 #: insights/insights/doctype/insights_table_v3/insights_table_v3.json
 msgid "Incremental"
-msgstr ""
-
-#. Label of the sync_section (Section Break) field in DocType 'Insights Table
-#. v3'
-#: insights/insights/doctype/insights_table_v3/insights_table_v3.json
-msgid "Incremental Sync"
 msgstr ""
 
 #: frontend/src2/charts/components/MapChartConfigForm.vue:55
@@ -1578,12 +1578,12 @@ msgstr ""
 #: frontend/src2/settings/UsersSettings.vue:173
 #: frontend/src2/users/UserList.vue:84 frontend/src2/users/UserList.vue:175
 msgid "Invite User"
-msgstr ""
+msgstr "Inviter un utilisateur"
 
 #. Label of the invited_by (Link) field in DocType 'Insights User Invitation'
 #: insights/insights/doctype/insights_user_invitation/insights_user_invitation.json
 msgid "Invited By"
-msgstr ""
+msgstr "Invité par"
 
 #. Label of the is_assisted_query (Check) field in DocType 'Insights Query'
 #: insights/insights/doctype/insights_query/insights_query.json
@@ -1845,7 +1845,7 @@ msgstr ""
 msgid "Long Text"
 msgstr "Texte long"
 
-#: frontend/src2/teams/ManageTeamDialog.vue:63
+#: frontend/src2/teams/ManageTeamDialog.vue:64
 msgid "Manage Team"
 msgstr ""
 
@@ -1886,7 +1886,7 @@ msgstr ""
 msgid "Max Records To Sync"
 msgstr ""
 
-#: frontend/src2/charts/components/MeasurePicker.vue:130
+#: frontend/src2/charts/components/MeasurePicker.vue:140
 msgid "Maximum of..."
 msgstr ""
 
@@ -1905,7 +1905,7 @@ msgstr ""
 msgid "Message"
 msgstr ""
 
-#: frontend/src2/charts/components/MeasurePicker.vue:129
+#: frontend/src2/charts/components/MeasurePicker.vue:139
 msgid "Minimum of..."
 msgstr ""
 
@@ -2228,6 +2228,12 @@ msgstr ""
 msgid "Primary Key"
 msgstr ""
 
+#. Label of the sync_primary_key_column (Data) field in DocType 'Insights Table
+#. v3'
+#: insights/insights/doctype/insights_table_v3/insights_table_v3.json
+msgid "Primary Key Column"
+msgstr ""
+
 #: frontend/src2/settings/Settings.vue:13
 msgid "Profile"
 msgstr "Profil"
@@ -2445,7 +2451,7 @@ msgstr ""
 #. Label of the rows (Int) field in DocType 'Insights Table Import'
 #: insights/insights/doctype/insights_table_import/insights_table_import.json
 msgid "Rows"
-msgstr ""
+msgstr "Lignes"
 
 #. Label of the rows_imported (Int) field in DocType 'Insights Table Import
 #. Log'
@@ -2508,7 +2514,7 @@ msgstr "Enregistrer"
 
 #: frontend/src2/charts/components/RegionMappingDialog.vue:314
 msgid "Save Changes"
-msgstr ""
+msgstr "Enregistrer les modifications"
 
 #: frontend/src2/components/VariablesDialog.vue:133
 msgid "Save Variables"
@@ -2718,6 +2724,12 @@ msgstr ""
 msgid "Spreading column values into separate columns"
 msgstr ""
 
+#. Description of the 'Primary Key Column' (Data) field in DocType 'Insights
+#. Table v3'
+#: insights/insights/doctype/insights_table_v3/insights_table_v3.json
+msgid "Stable key used to identify the latest version of each logical row during incremental upserts."
+msgstr ""
+
 #. Description of the 'Sync From' (Datetime) field in DocType 'Insights Table
 #. v3'
 #: insights/insights/doctype/insights_table_v3/insights_table_v3.json
@@ -2788,7 +2800,7 @@ msgstr ""
 msgid "Success"
 msgstr "Succès"
 
-#: frontend/src2/charts/components/MeasurePicker.vue:127
+#: frontend/src2/charts/components/MeasurePicker.vue:137
 msgid "Sum of..."
 msgstr "Somme de..."
 
@@ -2819,6 +2831,11 @@ msgstr ""
 #. Label of the sync_mode (Select) field in DocType 'Insights Table v3'
 #: insights/insights/doctype/insights_table_v3/insights_table_v3.json
 msgid "Sync Mode"
+msgstr ""
+
+#. Label of the sync_strategy (Select) field in DocType 'Insights Table v3'
+#: insights/insights/doctype/insights_table_v3/insights_table_v3.json
+msgid "Sync Strategy"
 msgstr ""
 
 #: frontend/src2/query/components/source_selector/DataSourceTableList.vue:59
@@ -2937,6 +2954,12 @@ msgstr ""
 msgid "Telegram Chat ID"
 msgstr ""
 
+#. Description of the 'Cursor Column' (Data) field in DocType 'Insights Table
+#. v3'
+#: insights/insights/doctype/insights_table_v3/insights_table_v3.json
+msgid "Temporal column used to detect rows that changed since the last sync. Use <b>modified</b> for mutable tables and <b>creation</b> for append-only tables."
+msgstr ""
+
 #. Option for the 'Type' (Select) field in DocType 'Insights Table Column'
 #: insights/insights/doctype/insights_table_column/insights_table_column.json
 msgid "Text"
@@ -2952,19 +2975,19 @@ msgstr ""
 
 #: frontend/src2/query/components/ColumnFilterTypeDate.vue:55
 msgid "This Month"
-msgstr ""
+msgstr "Ce mois-ci"
 
 #: frontend/src2/query/components/ColumnFilterTypeDate.vue:56
 msgid "This Quarter"
-msgstr ""
+msgstr "Ce trimestre"
 
 #: frontend/src2/query/components/ColumnFilterTypeDate.vue:54
 msgid "This Week"
-msgstr ""
+msgstr "Cette semaine"
 
 #: frontend/src2/query/components/ColumnFilterTypeDate.vue:57
 msgid "This Year"
-msgstr ""
+msgstr "Cette année"
 
 #: insights/insights/doctype/insights_table_v3/insights_table_v3.js:15
 msgid "This will delete all warehouse data for <b>{0}</b> and reset the sync bookmark. Are you sure?"
@@ -3097,7 +3120,7 @@ msgstr ""
 msgid "Unexpected validation error"
 msgstr ""
 
-#: frontend/src2/charts/components/MeasurePicker.vue:131
+#: frontend/src2/charts/components/MeasurePicker.vue:141
 msgid "Unique Count of..."
 msgstr ""
 
@@ -3116,6 +3139,11 @@ msgstr ""
 
 #: frontend/src2/data_source/DataSourceTableList.vue:82
 msgid "Update Tables"
+msgstr ""
+
+#. Option for the 'Sync Strategy' (Select) field in DocType 'Insights Table v3'
+#: insights/insights/doctype/insights_table_v3/insights_table_v3.json
+msgid "Update or Insert"
 msgstr ""
 
 #: frontend/src2/data_source/DataSourceList.vue:76
@@ -3306,13 +3334,13 @@ msgstr ""
 msgid "You do not have permission to access this resource"
 msgstr ""
 
-#: insights/api/workbooks.py:165 insights/api/workbooks.py:186
-#: insights/api/workbooks.py:198 insights/api/workbooks.py:225
-#: insights/api/workbooks.py:236 insights/api/workbooks.py:250
+#: insights/api/workbooks.py:183 insights/api/workbooks.py:202
+#: insights/api/workbooks.py:215 insights/api/workbooks.py:243
+#: insights/api/workbooks.py:255 insights/api/workbooks.py:269
 msgid "You do not have permission to modify this workbook"
 msgstr ""
 
-#: insights/api/workbooks.py:79 insights/api/workbooks.py:132
+#: insights/api/workbooks.py:79 insights/api/workbooks.py:135
 msgid "You do not have permission to share this workbook"
 msgstr ""
 
@@ -3401,7 +3429,7 @@ msgstr "dossier"
 
 #: frontend/src2/query/components/FormatRule.vue:167
 msgid "greater than"
-msgstr ""
+msgstr "supérieur à"
 
 #: frontend/src2/query/components/FormatRule.vue:168
 msgid "greater than or equals"
@@ -3449,7 +3477,7 @@ msgstr ""
 
 #: frontend/src2/query/components/FormatRule.vue:169
 msgid "less than"
-msgstr ""
+msgstr "inférieur à"
 
 #: frontend/src2/query/components/FormatRule.vue:170
 msgid "less than or equals"
@@ -3461,7 +3489,7 @@ msgstr ""
 
 #: frontend/src2/query/components/FormatRule.vue:166
 msgid "not equals"
-msgstr ""
+msgstr "différent de"
 
 #. Option for the 'Type' (Select) field in DocType 'Insights Folder'
 #: insights/insights/doctype/insights_folder/insights_folder.json
