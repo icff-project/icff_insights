@@ -1,5 +1,5 @@
 <script setup lang="tsx">
-import { useMagicKeys, whenever } from '@vueuse/core'
+import { useMagicKeys, useStorage, whenever } from '@vueuse/core'
 import {
 	Breadcrumbs,
 	Dropdown,
@@ -8,6 +8,7 @@ import {
 	ListRows,
 	ListSelectBanner,
 	ListView,
+	TabButtons,
 } from 'frappe-ui'
 import { ChevronDown, Folder, FolderPlus, PlusIcon, SearchIcon } from 'lucide-vue-next'
 import { computed, ref, toRef, watchEffect } from 'vue'
@@ -36,22 +37,53 @@ const { currentFolder, searchQuery, drillInto, subfolders, breadcrumbs } = useFo
 	__('Workbooks'),
 )
 
-const scope = ref<'all' | 'owned' | 'shared'>('all')
+type WorkbookScope = 'all' | 'owned' | 'shared'
+
+const scopeTabs: { label: string; value: WorkbookScope }[] = [
+	{ label: __('All'), value: 'all' },
+	{ label: __('Created'), value: 'owned' },
+	{ label: __('Shared'), value: 'shared' },
+]
+
+// persist the chosen scope locally so it survives reloads
+const scope = useStorage<WorkbookScope>('insights:workbook-scope', 'all')
+
+// "Load more" grows the page size and refetches
+const PAGE_SIZE = 20
+const limit = ref(PAGE_SIZE)
+const hasMore = computed(() => workbookStore.workbooks.length >= limit.value)
 
 async function refresh() {
-	workbookStore.getWorkbooks(searchQuery.value, 100, scope.value, currentFolder.value || 'root')
+	workbookStore.getWorkbooks(
+		searchQuery.value,
+		limit.value,
+		scope.value,
+		currentFolder.value || 'root',
+	)
 }
+
+// reset pagination for a new query (scope/folder/search change)
+function reload() {
+	limit.value = PAGE_SIZE
+	refresh()
+}
+
+function loadMore() {
+	limit.value += PAGE_SIZE
+	refresh()
+}
+
 // reset the list when the folder/scope changes so a slow fetch can't keep
 // showing the previous folder's workbooks; search keeps previous data (no flicker)
 wheneverChanges(
 	() => [scope.value, currentFolder.value],
 	() => {
 		workbookStore.workbooks = []
-		refresh()
+		reload()
 	},
 	{ immediate: true },
 )
-wheneverChanges(searchQuery, refresh, { debounce: 300 })
+wheneverChanges(searchQuery, reload, { debounce: 300 })
 
 // ---- create workbook ----
 const creatingWorkbook = ref(false)
@@ -186,10 +218,11 @@ watchEffect(() => {
 		</div>
 	</header>
 
-	<div class="mb-4 flex h-full flex-col gap-3 overflow-auto px-5 py-3">
-		<div class="flex gap-2 overflow-visible py-1">
+	<div class="mb-4 flex h-full flex-col gap-3 overflow-auto px-5 pt-3">
+		<div class="flex items-center justify-between gap-2 overflow-visible py-1">
 			<FormControl
-				:placeholder="__('Search by Title')"
+				class="w-64"
+				:placeholder="__('Search by title')"
 				v-model="searchQuery"
 				:debounce="300"
 				autocomplete="off"
@@ -198,31 +231,38 @@ watchEffect(() => {
 					<SearchIcon class="h-4 w-4 text-gray-500" />
 				</template>
 			</FormControl>
-			<FormControl
-				type="select"
-				v-model="scope"
-				:options="[
-					{ label: __('All'), value: 'all' },
-					{ label: __('Created by me'), value: 'owned' },
-					{ label: __('Shared with me'), value: 'shared' },
-				]"
-			/>
+			<TabButtons :buttons="scopeTabs" v-model="scope" />
 		</div>
-		<ListView class="h-full" v-bind="listOptions">
-			<ListHeader />
-			<ListRows v-if="rows.length" />
-			<ListEmptyState v-else />
-			<ListSelectBanner>
-				<template #actions="{ selections, unselectAll }">
-					<Dropdown :options="bulkMoveOptions(selections, unselectAll)" placement="right">
-						<Button :label="__('Move to folder')" variant="ghost">
-							<template #prefix>
-								<Folder class="h-4 w-4 text-gray-600" />
-							</template>
-						</Button>
-					</Dropdown>
-				</template>
-			</ListSelectBanner>
-		</ListView>
+		<!-- plain block wrapper so ListView flows to content height (its root is
+		flex-1 and would otherwise stretch and leave whitespace) -->
+		<div class="w-full">
+			<ListView v-bind="listOptions">
+				<ListHeader />
+				<ListRows v-if="rows.length" />
+				<!-- skip the empty state while a fetch is in flight so it doesn't flash on tab switch -->
+				<ListEmptyState v-else-if="!workbookStore.loading" />
+				<ListSelectBanner>
+					<template #actions="{ selections, unselectAll }">
+						<Dropdown
+							:options="bulkMoveOptions(selections, unselectAll)"
+							placement="right"
+						>
+							<Button :label="__('Move to folder')" variant="ghost">
+								<template #prefix>
+									<Folder class="h-4 w-4 text-gray-600" />
+								</template>
+							</Button>
+						</Dropdown>
+					</template>
+				</ListSelectBanner>
+			</ListView>
+			<div v-if="hasMore" class="flex pt-3">
+				<Button
+					:label="__('Load more')"
+					:loading="workbookStore.loading"
+					@click="loadMore"
+				/>
+			</div>
+		</div>
 	</div>
 </template>

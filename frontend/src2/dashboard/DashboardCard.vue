@@ -27,13 +27,12 @@ const emit = defineEmits<{
 			<img
 				v-if="dashboard.preview_image"
 				:src="dashboard.preview_image"
+				loading="lazy"
+				decoding="async"
 				onerror="this.src = ''"
 				class="object-cover opacity-80"
 			/>
-			<div
-				v-else
-				class="flex h-full w-full items-center justify-center bg-gray-50/70"
-			>
+			<div v-else class="flex h-full w-full items-center justify-center bg-gray-50/70">
 				<Button
 					variant="ghost"
 					@click.prevent.stop="emit('update-preview')"
