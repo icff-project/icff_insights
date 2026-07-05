@@ -7,7 +7,15 @@ import frappe.utils
 from frappe.model.document import Document
 from frappe.query_builder import Interval
 from frappe.query_builder.functions import Now
-from frappe.utils.telemetry import capture
+try:
+	from frappe.utils.telemetry import capture
+except ImportError:
+	# PR-Foundry fork patch (framework#67 follow-on): frappe v16 dropped its posthog
+	# integration (refactor!: "Drop posthog" #39990), removing frappe.utils.telemetry.
+	# Optional telemetry import — degrade to a no-op so importing this DocType
+	# controller (and `bench migrate`) does not fail. Re-verify after upstream-sync.
+	def capture(*args, **kwargs):
+		return
 
 from insights.utils import deep_convert_dict_to_dict
 
