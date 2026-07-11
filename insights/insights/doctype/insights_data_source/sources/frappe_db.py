@@ -316,7 +316,15 @@ class SiteDB(FrappeDB):
             host=credentials["host"],
             port=credentials["port"],
             ssl=False,
-            ssl_verify_cert=bool(not frappe.conf.developer_mode),
+            # PR-Foundry fork patch (framework) — verify the DB cert only when the
+            # site actually configured a CA, mirroring Frappe core
+            # (frappe/database/mariadb/database.py: `if frappe.conf.db_ssl_ca`).
+            # The Site DB is the SAME database Frappe connects to; keying off
+            # developer_mode forced cert verification on every non-dev
+            # containerised site, whose internal MariaDB uses a self-signed cert
+            # → CERTIFICATE_VERIFY_FAILED. Upstream-owned line: re-verify after an
+            # insights upstream sync.
+            ssl_verify_cert=bool(frappe.conf.db_ssl_ca),
             charset="utf8mb4",
             use_unicode=True,
         )
