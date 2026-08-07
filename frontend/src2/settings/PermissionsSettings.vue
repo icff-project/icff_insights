@@ -80,7 +80,7 @@ const editTeam = ref<Team | null>(null)
 
 <template>
 	<div class="flex w-full flex-col gap-6 overflow-y-scroll p-8 px-10">
-		<h1 class="text-xl font-semibold">Permissions</h1>
+		<h1 class="text-2xl-semibold">Permissions</h1>
 
 		<SettingItem
 			label="Enable"
@@ -98,7 +98,7 @@ const editTeam = ref<Team | null>(null)
 
 		<SettingItem
 			label="Allow Data Download"
-			description="Allow users to download query results as CSV or Excel. When disabled, only admins can download data."
+			description="Allow users to download query results as CSV or Excel. A user can download only if both this toggle is on and its export permission is granted on the query. When disabled, only admins can download data."
 		>
 			<Toggle v-model="settings.doc.allow_download" />
 		</SettingItem>
@@ -116,7 +116,7 @@ const editTeam = ref<Team | null>(null)
 					@click="showCreateTeamDialog = true"
 				>
 					<template #prefix>
-						<Plus class="h-4 w-4 text-gray-700" stroke-width="1.5" />
+						<Plus class="h-4 w-4 text-ink-gray-6" stroke-width="1.5" />
 					</template>
 				</Button>
 			</SettingItem>

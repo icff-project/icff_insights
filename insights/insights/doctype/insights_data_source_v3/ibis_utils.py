@@ -586,9 +586,9 @@ class IbisQueryBuilder:
         raw_sql = sqlparse.format(sql=raw_sql, strip_comments=True)
         raw_sql = self._validate_native_sql(raw_sql, use_live_connection=self.use_live_connection)
 
-        check_permissions = any(
-            frappe.get_single_value("Insights Settings", ["enable_permissions", "apply_user_permissions"])
-        )
+        check_permissions = frappe.db.get_single_value(
+            "Insights Settings", "enable_permissions"
+        ) or frappe.db.get_single_value("Insights Settings", "apply_user_permissions")
 
         if check_permissions or not self.use_live_connection:
             tables = self._get_sql_table_names(
@@ -955,7 +955,11 @@ def execute_ibis_query(
                 title="Query execution time exceeded the limit.",
                 message=f"Query: {sql}",
             )
-            max_time = frappe.db.get_single_value("Insights Settings", "max_execution_time") or 180
+            from insights.insights.doctype.insights_settings.insights_settings import (
+                get_max_execution_time,
+            )
+
+            max_time = get_max_execution_time()
             frappe.throw(
                 title="Query Timeout",
                 msg=f"Query execution time exceeded the limit of {max_time} seconds. Please try again with a smaller timespan or a more specific filter.",
@@ -977,7 +981,10 @@ def execute_ibis_query(
     return result, time_taken
 
 
-@concurrent_limit()
+# reject immediately instead of waiting for a slot: a blocked request holds on to a
+# web thread, so waiting here is what starves the pool when a dashboard executes all
+# of its charts at once. The frontend retries on the 503.
+@concurrent_limit(wait_timeout=0)
 def _execute_live_query(query: IbisQuery):
     start = time.monotonic()
     result = query.execute()

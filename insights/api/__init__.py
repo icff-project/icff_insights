@@ -4,7 +4,6 @@
 import os
 
 import frappe
-from frappe.defaults import get_user_default, set_user_default
 from frappe.handler import is_valid_http_method, is_whitelisted
 from frappe.monitor import add_data_to_monitor
 
@@ -19,6 +18,7 @@ from insights.insights.doctype.insights_table_v3.insights_table_v3 import (
 from insights.insights.doctype.insights_team.insights_team import (
     check_data_source_permission,
 )
+from insights.utils import get_owned_file
 
 
 @insights_whitelist()
@@ -54,8 +54,6 @@ def get_user_info():
         # TODO: move to `get_session_info` since not user specific
         "country": frappe.db.get_single_value("System Settings", "country"),
         "locale": locale,
-        "is_v2_instance": frappe.db.count("Insights Query") > 0,
-        "default_version": get_user_default("insights_default_version", frappe.session.user),
         "has_desk_access": user.get("user_type") == "System User",
         "has_demo_data": has_demo_data,
         "fiscal_year_start": frappe.db.get_single_value("Insights Settings", "fiscal_year_start")
@@ -63,16 +61,8 @@ def get_user_info():
     }
 
 
-@insights_whitelist()
-def update_default_version(version: str):
-    if get_user_default("insights_has_visited_v3", frappe.session.user) != "1":
-        set_user_default("insights_has_visited_v3", "1", frappe.session.user)
-
-    set_user_default("insights_default_version", version, frappe.session.user)
-
-
 def get_csv_file(filename: str):
-    file = frappe.get_doc("File", filename)
+    file = get_owned_file(filename)
     file_name = file.file_name or ""
     parts = file.get_extension()
     extension = parts[-1] if parts else ""

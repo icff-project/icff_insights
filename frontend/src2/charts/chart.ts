@@ -12,7 +12,7 @@ import { GranularityType } from '../helpers/constants'
 import useDocumentResource from '../helpers/resource'
 import { createToast } from '../helpers/toasts'
 import { column, count, query_table } from '../query/helpers'
-import useQuery, { Query } from '../query/query'
+import useQuery, { makeAdhocQuery, Query } from '../query/query'
 import router from '../router'
 import { __ } from '../translation'
 import {
@@ -21,13 +21,19 @@ import {
 	BubbleChartConfig,
 	CHARTS,
 	DonutChartConfig,
+	FunnelChartConfig,
 	MapChartConfig,
 	NumberChartConfig,
 	TableChartConfig,
 } from '../types/chart.types'
 import { InsightsChartv3 } from '../types/workbook.types'
 import useWorkbook, { getLinkedQueries } from '../workbook/workbook'
-import { handleOldXAxisConfig, handleOldYAxisConfig, setDimensionNames } from './helpers'
+import {
+	ensureConfigSlots,
+	handleOldXAxisConfig,
+	handleOldYAxisConfig,
+	setDimensionNames,
+} from './helpers'
 
 const charts = new Map<string, Chart>()
 
@@ -55,6 +61,8 @@ function makeChart(name: string) {
 		if (!chart.isloaded) return {} as Query
 		return useQuery(chart.doc.data_query)
 	})
+
+	const isConfigValid = computed(() => validateConfig())
 	async function refresh(force?: boolean, reload?: boolean) {
 		if (reload) {
 			await chart.load()
@@ -64,10 +72,9 @@ function makeChart(name: string) {
 			() => chart.isloaded && dataQuery.value.isloaded && useQuery(chart.doc.query).isloaded
 		)
 
-		const isValid = validateConfig()
-		if (!isValid) return
+		if (!isConfigValid.value) return
 
-		const query = useQuery('new-query-' + getUniqueId())
+		const query = makeAdhocQuery()
 		addSourceOperation(query)
 		addFilterOperation(query)
 		addChartOperation(query)
@@ -121,7 +128,7 @@ function makeChart(name: string) {
 					message: __('X-axis is required'),
 				})
 			}
-			if (config.x_axis.dimension.column_name === config.split_by?.dimension.column_name) {
+			if (config.x_axis.dimension.column_name === config.split_by?.dimension?.column_name) {
 				messages.push({
 					variant: 'error',
 					message: __('X-axis and Split by cannot be the same'),
@@ -139,7 +146,7 @@ function makeChart(name: string) {
 			}
 		}
 
-		if (chart.doc.chart_type === 'Donut' || chart.doc.chart_type === 'Funnel') {
+		if (chart.doc.chart_type === 'Donut') {
 			const config = chart.doc.config as DonutChartConfig
 			if (!config.label_column?.column_name) {
 				messages.push({
@@ -151,6 +158,19 @@ function makeChart(name: string) {
 				messages.push({
 					variant: 'error',
 					message: __('Value column is required'),
+				})
+			}
+		}
+
+		if (chart.doc.chart_type === 'Funnel') {
+			const config = chart.doc.config as FunnelChartConfig
+			// Measures mode needs at least one measure; grouped mode needs label + value.
+			if (config.measures?.some((m) => m.measure_name)) {
+				// valid measures-mode config
+			} else if (!config.label_column?.column_name || !config.value_column?.measure_name) {
+				messages.push({
+					variant: 'error',
+					message: __('Add a measure, or set a label and value column'),
 				})
 			}
 		}
@@ -226,8 +246,12 @@ function makeChart(name: string) {
 			addNumberChartOperation(query)
 		}
 
-		if (chart.doc.chart_type === 'Donut' || chart.doc.chart_type === 'Funnel') {
+		if (chart.doc.chart_type === 'Donut') {
 			addDonutChartOperation(query)
+		}
+
+		if (chart.doc.chart_type === 'Funnel') {
+			addFunnelChartOperation(query)
 		}
 
 		if (chart.doc.chart_type === 'Table') {
@@ -277,6 +301,32 @@ function makeChart(name: string) {
 	function addDonutChartOperation(query: Query) {
 		const config = chart.doc.config as DonutChartConfig
 
+		query.addSummarize({
+			measures: [config.value_column],
+			dimensions: [config.label_column],
+		})
+		query.addOrderBy({
+			column: column(config.value_column.measure_name),
+			direction: 'desc',
+		})
+	}
+
+	function addFunnelChartOperation(query: Query) {
+		const config = chart.doc.config as FunnelChartConfig
+
+		// Measures mode: each measure is a stage, aggregated over the whole
+		// result with no group-by (mirrors the Number chart's data_query).
+		const measures = config.measures?.filter((m) => m.measure_name)
+		if (measures?.length) {
+			query.addSummarize({
+				measures,
+				dimensions: [],
+			})
+			return
+		}
+
+		// Grouped (long-format) mode: one row per stage, ordered by value.
+		if (!config.value_column?.measure_name || !config.label_column?.column_name) return
 		query.addSummarize({
 			measures: [config.value_column],
 			dimensions: [config.label_column],
@@ -386,7 +436,11 @@ function makeChart(name: string) {
 	}
 
 	function getShareLink() {
-		return `${window.location.origin}/insights/shared/chart/${chart.doc.name}`
+		const { href } = router.resolve({
+			name: 'SharedChart',
+			params: { chart_name: chart.doc.name },
+		})
+		return `${window.location.origin}${href}`
 	}
 
 	function getDependentQueries() {
@@ -426,14 +480,13 @@ function makeChart(name: string) {
 	watch(
 		() => chart.doc.chart_type,
 		(newType: string, oldType: string) => {
-			if (newType === oldType) return
-			if (!newType || !oldType) return
-			if (
-				(AXIS_CHARTS.includes(newType) && !AXIS_CHARTS.includes(oldType)) ||
-				(!AXIS_CHARTS.includes(newType) && AXIS_CHARTS.includes(oldType))
-			) {
+			if (!newType || newType === oldType) return
+			const crossesAxisBoundary =
+				oldType && AXIS_CHARTS.includes(newType) !== AXIS_CHARTS.includes(oldType)
+			if (crossesAxisBoundary) {
 				resetConfig()
 			}
+			ensureConfigSlots(chart.doc.config, newType)
 		}
 	)
 
@@ -489,6 +542,7 @@ function makeChart(name: string) {
 		...toRefs(chart),
 
 		dataQuery,
+		isConfigValid,
 
 		refresh,
 		updateGranularity,
@@ -578,6 +632,7 @@ function transformChartDoc(doc: any) {
 	}
 
 	doc.config = setDimensionNames(doc.config)
+	doc.config = ensureConfigSlots(doc.config, doc.chart_type)
 
 	return doc
 }

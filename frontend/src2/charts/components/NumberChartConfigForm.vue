@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import ColorInput from '@/components/Controls/ColorInput.vue'
 import { debounce } from 'frappe-ui'
 import { computed, watchEffect } from 'vue'
+import ColorInput from '../../components/ColorInput.vue'
 import DraggableList from '../../components/DraggableList.vue'
 import InlineFormControlLabel from '../../components/InlineFormControlLabel.vue'
 import { FIELDTYPES } from '../../helpers/constants'
@@ -68,13 +68,14 @@ function setNumberOption(index: number, option: keyof NumberColumnOptions, value
 	<CollapsibleSection title="Options">
 		<div class="flex flex-col gap-3 pt-1">
 			<div>
-				<p class="mb-1.5 text-xs text-gray-600">Columns</p>
+				<p class="mb-1.5 text-xs text-ink-gray-5">Columns</p>
 				<div>
 					<DraggableList v-model:items="config.number_columns" group="numbers">
 						<template #item="{ item, index }">
 							<MeasurePicker
 								:model-value="item"
 								:column-options="props.columnOptions"
+								:enable-format="true"
 								@update:model-value="Object.assign(item, $event || {})"
 								@remove="config.number_columns.splice(index, 1)"
 							>
@@ -129,7 +130,7 @@ function setNumberOption(index: number, option: keyof NumberColumnOptions, value
 						</template>
 					</DraggableList>
 					<button
-						class="mt-1.5 text-left text-xs text-gray-600 hover:underline"
+						class="mt-1.5 text-left text-xs text-ink-gray-5 hover:underline"
 						@click="config.number_columns.push({} as any)"
 					>
 						+ Add column
@@ -168,9 +169,16 @@ function setNumberOption(index: number, option: keyof NumberColumnOptions, value
 				v-model="config.negative_is_better"
 			/>
 
-			<Toggle v-if="config.comparison" label="Show sparkline" v-model="config.sparkline" />
+			<Toggle
+				v-if="config.date_column?.column_name"
+				label="Show sparkline"
+				v-model="config.sparkline"
+			/>
 
-			<InlineFormControlLabel v-if="config.sparkline" label="Color">
+			<InlineFormControlLabel
+				v-if="config.date_column?.column_name && config.sparkline"
+				label="Color"
+			>
 				<ColorInput
 					:model-value="config.sparkline_color"
 					@update:model-value="updateColor($event)"

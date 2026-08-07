@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { formatNumber, getShortNumber } from '../../helpers'
 import { NumberChartConfig, NumberColumnOptions } from '../../types/chart.types'
-import { QueryResult, QueryResultColumn, QueryResultRow } from '../../types/query.types'
+import { DataFormat, QueryResult, QueryResultColumn, QueryResultRow } from '../../types/query.types'
 import Sparkline from './Sparkline.vue'
 
 const props = defineProps<{
@@ -53,13 +53,16 @@ const cards = computed(() => {
 		const decimal = getNumberOption(idx, 'decimal')
 		const color = getNumberOption(idx, 'color')
 		const shorten_numbers = getNumberOption(idx, 'shorten_numbers')
+		const format = config.value.number_columns.find((c) => c.measure_name === measure_name)
+			?.format
 
 		return {
 			measure_name,
 			values: numberValues,
-			currentValue: getFormattedValue(currentValue, decimal, shorten_numbers),
-			previousValue: getFormattedValue(previousValue, decimal, shorten_numbers),
+			currentValue: getFormattedValue(currentValue, decimal, shorten_numbers, format),
+			previousValue: getFormattedValue(previousValue, decimal, shorten_numbers, format),
 			delta,
+			// percentDelta is already a percentage change, so it keeps the default format
 			percentDelta: getFormattedValue(percentDelta, decimal, shorten_numbers),
 			prefix,
 			suffix,
@@ -68,8 +71,16 @@ const cards = computed(() => {
 	})
 })
 
-const getFormattedValue = (value: number, decimal?: number, shorten_numbers?: boolean) => {
+const getFormattedValue = (
+	value: number,
+	decimal?: number,
+	shorten_numbers?: boolean,
+	format?: DataFormat,
+) => {
 	if (isNaN(value)) return 0
+	if (format === 'percent') {
+		return `${formatNumber(value * 100, decimal)}%`
+	}
 	if (shorten_numbers) {
 		return getShortNumber(value, decimal)
 	}
@@ -107,12 +118,12 @@ function onDoubleClick(measure_name: string) {
 					color,
 				} in cards"
 				:key="measure_name"
-				class="flex max-h-[140px] items-center gap-2 overflow-hidden rounded bg-white px-6 pt-5 shadow cursor-pointer"
+				class="flex max-h-[140px] items-center gap-2 overflow-hidden rounded bg-surface-base px-6 pt-5 border border-outline-gray-2 cursor-pointer"
 				:class="config.comparison ? 'pb-6' : 'pb-3'"
 				@dblclick="onDoubleClick(measure_name)"
 			>
 				<div class="flex w-full flex-col">
-					<span class="truncate text-sm font-medium">
+					<span class="truncate text-sm-medium">
 						{{ measure_name }}
 					</span>
 					<div
@@ -123,15 +134,15 @@ function onDoubleClick(measure_name: string) {
 					</div>
 					<div
 						v-if="config.comparison"
-						class="flex items-center gap-1 text-xs font-medium"
+						class="flex items-center gap-1 text-xs-medium"
 						:class="[
 							config.negative_is_better
 								? delta >= 0
-									? 'text-red-500'
-									: 'text-green-500'
+									? 'text-ink-red-6'
+									: 'text-ink-green-6'
 								: delta >= 0
-								  ? 'text-green-500'
-								  : 'text-red-500',
+								  ? 'text-ink-green-6'
+								  : 'text-ink-red-6',
 						]"
 					>
 						<span class="">
@@ -139,7 +150,10 @@ function onDoubleClick(measure_name: string) {
 						</span>
 						<span> {{ percentDelta }}% </span>
 					</div>
-					<div v-if="config.sparkline" class="mt-2 h-[18px] w-[80px]">
+					<div
+						v-if="config.sparkline && config.date_column?.column_name"
+						class="mt-2 h-[18px] w-[80px]"
+					>
 						<Sparkline
 							:dates="dateValues"
 							:values="values"

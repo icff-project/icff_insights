@@ -1,76 +1,7 @@
 import frappe
 from frappe.query_builder.functions import Count, Max
 
-from insights.api.permissions import is_private
 from insights.decorators import insights_whitelist, validate_type
-
-
-@insights_whitelist()
-def get_dashboard_list():
-    dashboards = frappe.get_list(
-        "Insights Dashboard",
-        fields=["name", "title", "modified", "_liked_by"],
-    )
-    for dashboard in dashboards:
-        if dashboard._liked_by:
-            dashboard["is_favourite"] = frappe.session.user in frappe.as_json(dashboard._liked_by)
-        dashboard["charts"] = frappe.get_all(
-            "Insights Dashboard Item",
-            filters={
-                "parent": dashboard.name,
-                "item_type": ["not in", ["Text", "Filter"]],
-            },
-            pluck="parent",
-        )
-        dashboard["charts_count"] = len(dashboard["charts"])
-        dashboard["view_count"] = frappe.db.count(
-            "View Log",
-            filters={
-                "reference_doctype": "Insights Dashboard",
-                "reference_name": dashboard.name,
-            },
-        )
-
-        dashboard["is_private"] = is_private("Insights Dashboard", dashboard.name)
-
-    return dashboards
-
-
-@insights_whitelist()
-def create_dashboard(title: str):
-    dashboard = frappe.get_doc({"doctype": "Insights Dashboard", "title": title})
-    dashboard.insert()
-    return {
-        "name": dashboard.name,
-        "title": dashboard.title,
-    }
-
-
-@insights_whitelist()
-def get_dashboard_options(chart: str):
-    # find all dashboards that don't have the chart within the allowed dashboards
-    Dashboard = frappe.qb.DocType("Insights Dashboard")
-    DashboardItem = frappe.qb.DocType("Insights Dashboard Item")
-
-    return (
-        frappe.qb.from_(Dashboard)
-        .left_join(DashboardItem)
-        .on(Dashboard.name == DashboardItem.parent)
-        .select(Dashboard.name.as_("value"), Dashboard.title.as_("label"))
-        .where(DashboardItem.chart != chart)
-        .groupby(Dashboard.name)
-        .run(as_dict=True)
-    )
-
-
-@insights_whitelist()
-def add_chart_to_dashboard(dashboard: str, chart: str):
-    dashboard = frappe.get_doc("Insights Dashboard", dashboard)
-    dashboard.add_chart(chart)
-    dashboard.save()
-
-
-# v3 API
 
 
 @insights_whitelist()
@@ -78,16 +9,11 @@ def get_dashboards(
     search_term: str | None = None,
     limit: int = 50,
     get_favorites: bool = False,
-    folder: str | None = None,
     scope: str | None = None,
 ):
-    """Return dashboards, optionally limited to a workbook folder.
+    """Return dashboards accessible to the current user.
 
-    Dashboards inherit categorization from their workbook (no folder field of
-    their own), so `folder` filters to dashboards whose workbook is filed there.
-    Use the sentinel "" / "root" to restrict to dashboards of unfiled workbooks.
-
-    scope (a personal lens, spans folders):
+    scope (a personal lens):
         "owned"  -> only dashboards created by the current user
         "shared" -> only dashboards created by someone else (still permission filtered)
     """
@@ -99,15 +25,6 @@ def get_dashboards(
         filters["owner"] = frappe.session.user
     elif scope == "shared":
         filters["owner"] = ["!=", frappe.session.user]
-
-    if folder is not None:
-        folder_workbooks = frappe.get_all(
-            "Insights Workbook",
-            filters={"folder": ["is", "not set"]} if folder in ("", "root") else {"folder": folder},
-            pluck="name",
-        )
-        # workbook link is stored as a string; cast to match
-        filters["workbook"] = ["in", [str(name) for name in folder_workbooks] or [""]]
 
     dashboards = frappe.get_list(
         "Insights Dashboard v3",
@@ -233,6 +150,7 @@ def _dashboard_chart_counts(names: list[str]) -> dict[str, int]:
 @insights_whitelist()
 @validate_type
 def update_dashboard_preview(dashboard_name: str):
+    frappe.has_permission("Insights Dashboard v3", ptype="read", doc=dashboard_name, throw=True)
     dashboard = frappe.get_doc("Insights Dashboard v3", dashboard_name)
     file_url = dashboard.generate_dashboard_preview()
     return file_url

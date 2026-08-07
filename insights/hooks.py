@@ -1,3 +1,5 @@
+import frappe
+
 app_name = "insights"
 app_title = "Insights"
 app_publisher = "Frappe Technologies Pvt. Ltd."
@@ -10,16 +12,28 @@ app_license = "GNU GPLv3"
 export_python_type_annotations = True
 require_type_annotated_api_methods = True
 
+# Sites that already serve something at /insights (e.g. a website page) can move
+# the app elsewhere by setting `insights_path` in site config. Stored without
+# slashes so everything below can build paths as f"/{insights_path}".
+insights_path = (frappe.conf.insights_path or "insights").strip("/") or "insights"
 
 add_to_apps_screen = [
     {
         "name": "insights",
         "logo": "/assets/insights/frontend/insights-logo.png",
         "title": "Insights",
-        "route": "/insights",
+        "route": f"/{insights_path}",
         "has_permission": "insights.permissions.check_app_permission",
     }
 ]
+
+# Any app can ship workbooks to Insights by pointing this hook at a directory
+# (relative to the app) holding one folder per workbook — manifest.json +
+# workbook.json + optional preview.png. Insights is its own first consumer: the
+# bundled ERPNext workbooks are discovered through the same public contract.
+# Deliberately policy-free name: how the site consumes these (import a copy
+# today, versioned updates later) can evolve without breaking the hook.
+insights_workbooks = "workbook_templates"
 
 
 # Includes in <head>
@@ -27,7 +41,7 @@ add_to_apps_screen = [
 
 # include js, css files in header of desk.html
 # app_include_css = "/assets/insights/css/insights.css"
-# app_include_js = "insights.bundle.js"
+app_include_js = "insights_nudge.bundle.js"
 
 # include js, css files in header of web template
 # web_include_css = "/assets/insights/css/insights.css"
@@ -85,10 +99,6 @@ after_migrate = "insights.migrate.after_migrate"
 after_request = ["insights.insights.doctype.insights_data_source_v3.insights_data_source_v3.after_request"]
 
 fixtures = [
-    {
-        "dt": "Insights Data Source",
-        "filters": {"name": ("in", ["Site DB", "Query Store"])},
-    },
     {
         "dt": "Insights Data Source v3",
         "filters": {"name": "Site DB"},
@@ -161,6 +171,9 @@ scheduler_events = {
     "daily": [
         "insights.api.data_store.sync_tables",
     ],
+    "weekly": [
+        "insights.insights.doctype.insights_data_source_v3.data_warehouse.cleanup_data_store",
+    ],
     "hourly": [
         "insights.api.data_store.update_failed_sync_status",
         "insights.insights.doctype.insights_table_import_job.insights_table_import_job.run_scheduled_imports",
@@ -225,6 +238,6 @@ before_tests = "insights.tests.utils.before_tests"
 page_renderer = "insights.utils.InsightsPageRenderer"
 
 website_route_rules = [
-    {"from_route": "/insights/<path:app_path>", "to_route": "insights"},
-    {"from_route": "/insights_v2/<path:app_path>", "to_route": "insights_v2"},
+    {"from_route": f"/{insights_path}/<path:app_path>", "to_route": "_insights"},
+    {"from_route": f"/{insights_path}", "to_route": "_insights"},
 ]

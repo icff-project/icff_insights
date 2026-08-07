@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { Icon } from 'frappe-ui/icons'
-import { computed, inject, reactive, watchEffect } from 'vue'
+import { computed, inject, reactive, watchEffect, watch } from 'vue'
 import { copy, wheneverChanges } from '../helpers'
 import { FIELDTYPES } from '../helpers/constants'
 import DataTypeIcon from '../query/components/DataTypeIcon.vue'
-import { ColumnDataType } from '../types/query.types'
+import { ColumnDataType, FilterOperator } from '../types/query.types'
 import { WorkbookDashboardFilter } from '../types/workbook.types'
 import { Dashboard } from './dashboard'
 import DashboardFilterEditor from './DashboardFilterEditor.vue'
@@ -14,7 +14,7 @@ const dashboard = inject<Dashboard>('dashboard')!
 const props = defineProps<{ item: WorkbookDashboardFilter }>()
 
 const filter = reactive(copy(props.item))
-watchEffect(() => Object.assign(filter, copy(props.item)))
+watchEffect(() => Object.assign(filter, props.item))
 if (!filter.links) {
 	filter.links = {}
 }
@@ -49,6 +49,19 @@ function stringValuesProvider(search: string) {
 }
 
 const filterState = reactive(copy(dashboard.filterStates[filter.filter_name] || {}))
+
+// no `immediate` — on mount, filterState must keep the restored state from dashboard.filterStates
+watch(
+	() => [filter.default_operator, filter.default_value],
+	([op, val]) => {
+		if (op != null && val != null) {
+			filterState.operator = op as FilterOperator
+			filterState.value = val
+		}
+	},
+	{ deep: true },
+)
+
 wheneverChanges(
 	() => filterState,
 	() => {
@@ -71,12 +84,11 @@ const label = computed(() => {
 
 <template>
 	<div class="h-8 w-full [&>div:first-child]:h-full">
-		<Popover class="h-full">
-			<template #target="{ togglePopover }">
+		<Popover class="h-full" match-trigger-width>
+			<template #trigger>
 				<Button
 					variant="outline"
-					class="flex h-full w-full !justify-start overflow-hidden text-sm shadow-sm [&>span]:truncate"
-					@click="togglePopover"
+					class="flex h-full w-full !justify-start overflow-hidden text-sm [&>span]:truncate"
 				>
 					<template #prefix>
 						<Icon
@@ -94,8 +106,8 @@ const label = computed(() => {
 					{{ label }}
 				</Button>
 			</template>
-			<template #body-main="{ togglePopover, isOpen }">
-				<div class="w-full p-2">
+			<template #default="{ toggle: togglePopover, isOpen }">
+				<div class="p-2" :style="{ width: 'var(--reka-popover-trigger-width)' }">
 					<Filter
 						v-if="isOpen"
 						:filter-type="filter.filter_type"

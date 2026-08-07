@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory, RouteLocation } from 'vue-router'
+import { APP_PATH } from './app_path.ts'
 import session from './session.ts'
 
 const routes = [
@@ -58,6 +59,13 @@ const routes = [
 		],
 	},
 	{
+		props: true,
+		name: 'OpenTemplate',
+		path: '/template/:app/:folder',
+		component: () => import('./workbook/OpenTemplate.vue'),
+		meta: { hideSidebar: true },
+	},
+	{
 		path: '/data-source',
 		name: 'DataSourceList',
 		component: () => import('./data_source/DataSourceList.vue'),
@@ -107,7 +115,7 @@ const routes = [
 ]
 
 let router = createRouter({
-	history: createWebHistory('/insights'),
+	history: createWebHistory(APP_PATH),
 	// @ts-ignore
 	routes,
 })

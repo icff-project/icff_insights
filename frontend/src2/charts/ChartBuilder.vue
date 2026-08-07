@@ -56,7 +56,7 @@ function downloadChart() {
 		console.warn('Chart element not found')
 		return
 	}
-	return downloadImage(chartEl.value, chart.doc.title, 2, {
+	return downloadImage(chartEl.value, `${chart.doc.title}.png`, 2, {
 		filter: (element: HTMLElement) => {
 			return !element?.classList?.contains('absolute')
 		},
@@ -85,7 +85,7 @@ const showShareDialog = ref(false)
 			<ChartBuilderTable v-if="chart.dataQuery.result.executedSQL" />
 		</div>
 		<div
-			class="relative mt-1 flex w-[19rem] flex-shrink-0 flex-col divide-y overflow-y-auto bg-white px-3.5"
+			class="relative mt-1 flex w-[19rem] flex-shrink-0 flex-col divide-y overflow-y-auto bg-surface-base px-3.5"
 		>
 			<CollapsibleSection title="Chart">
 				<div class="flex flex-col gap-3">

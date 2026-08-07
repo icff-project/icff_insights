@@ -2,6 +2,7 @@ import { reactive, ref, toRefs } from 'vue'
 // @ts-ignore
 import { useTelemetry } from 'frappe-ui/frappe'
 import useChart from '../charts/chart'
+import router from '../router'
 import {
 	getUniqueId,
 	safeJSONParse,
@@ -91,7 +92,7 @@ function makeDashboard(name: string) {
 				x: 0,
 				y: maxY,
 				w: 10,
-				h: 1,
+				h: 2,
 			},
 		})
 		editingItemIndex.value = dashboard.doc.items.length - 1
@@ -214,7 +215,18 @@ function makeDashboard(name: string) {
 	function refreshChart(chart_name: string, force = false) {
 		const chart = useChart(chart_name)
 		chart.dataQuery.adhocFilters = getAdhocFilters(chart_name)
+		chart.dataQuery.executionPriority = getLayoutRank(chart_name)
 		chart.refresh(force)
+	}
+
+	// charts reach the queue in whatever order their docs finish loading, so rank
+	// them by grid position instead: top row first, left to right within a row
+	function getLayoutRank(chart_name: string) {
+		const item = dashboard.doc.items.find(
+			(item) => item.type === 'chart' && item.chart === chart_name
+		)
+		if (!item) return undefined
+		return item.layout.y * grid_cols + item.layout.x
 	}
 
 	function getAdhocFilters(chart_name: string, exclude_filter_name?: string) {
@@ -319,10 +331,11 @@ function makeDashboard(name: string) {
 	}
 
 	function getShareLink() {
-		return (
-			dashboard.doc.share_link ||
-			`${window.location.origin}/insights/shared/dashboard/${dashboard.doc.name}`
-		)
+		const { href } = router.resolve({
+			name: 'SharedDashboard',
+			params: { dashboard_name: dashboard.doc.name },
+		})
+		return dashboard.doc.share_link || `${window.location.origin}${href}`
 	}
 
 	function updateAccess(data: {
