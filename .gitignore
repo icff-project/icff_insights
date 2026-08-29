@@ -173,6 +173,12 @@ node_modules
 *debug.log
 insights/docs/current
 insights/public/frontend
+# Generated SPA shells — written by `bench build` and restored from the image
+# by the Makefile's restore-spa-shells (PR-Foundry/framework#153). All three
+# siblings are regenerated, so none is tracked; only _insights.html was
+# ignored before, which left the other two showing as permanent repo dirt.
+insights/www/insights.html
+insights/www/insights_v2.html
 insights/www/_insights.html
 .nyc_output
 coverage/
